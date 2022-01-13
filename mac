@@ -108,7 +108,8 @@ if brew list | grep -Fq brew-cask; then
 fi
 
 fancy_echo "Updating Homebrew formulae ..."
-brew update --force # https://github.com/Homebrew/brew/issues/1151
+set +e
+#brew update --force # https://github.com/Homebrew/brew/issues/1151
 brew bundle --file=- <<EOF
 tap "thoughtbot/formulae"
 tap "homebrew/services"
@@ -119,6 +120,7 @@ tap "heroku/brew"
 brew "universal-ctags", args: ["HEAD"]
 brew "git"
 brew "openssl"
+brew "ruby-build"
 brew "rcm"
 brew "reattach-to-user-namespace"
 brew "the_silver_searcher"
@@ -134,6 +136,9 @@ brew "parity"
 # GitHub
 brew "gh"
 
+# https://asdf-vm.com
+brew "asdf"
+
 # Image manipulation
 brew "imagemagick"
 
@@ -141,22 +146,34 @@ brew "imagemagick"
 brew "libyaml" # should come after openssl
 brew "coreutils"
 brew "yarn"
+
+# Uncomment below to install userland apps
 cask "gpg-suite"
+cask "visual-studio-code"
+cask "google-chrome"
+cask "discord"
+cask "alfred"
+cask "slack"
+cask "iterm2"
+cask "lastpass"
+cask "1password"
+cask "google-chrome"
+cask "firefox"
+cask "pgadmin4"
 
 # Databases
 brew "postgres", restart_service: :changed
 brew "redis", restart_service: :changed
 EOF
 
+set -e
+
 fancy_echo "Update heroku binary ..."
 brew unlink heroku
 brew link --force heroku
 
 fancy_echo "Configuring asdf version manager ..."
-if [ ! -d "$HOME/.asdf" ]; then
-  git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.5.0
-  append_to_zshrc "source $HOME/.asdf/asdf.sh" 1
-fi
+append_to_zshrc "source /opt/homebrew/opt/asdf/libexec/asdf.sh" 1
 
 alias install_asdf_plugin=add_or_update_asdf_plugin
 add_or_update_asdf_plugin() {
@@ -171,9 +188,10 @@ add_or_update_asdf_plugin() {
 }
 
 # shellcheck disable=SC1090
-source "$HOME/.asdf/asdf.sh"
+source "/opt/homebrew/opt/asdf/libexec/asdf.sh"
 add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
 add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
+add_or_update_asdf_plugin "python" "https://github.com/danhper/asdf-python.git"
 
 install_asdf_language() {
   local language="$1"
@@ -187,17 +205,20 @@ install_asdf_language() {
 }
 
 fancy_echo "Installing latest Ruby ..."
+# for ruby 3.0.3
+RUBY_CONFIGURE_OPTS="--with-openssl-dir=`brew --prefix openssl@1.1`"
 install_asdf_language "ruby"
 gem update --system
 number_of_cores=$(sysctl -n hw.ncpu)
 bundle config --global jobs $((number_of_cores - 1))
 
-fancy_echo "Installing latest Node ..."
-bash "$HOME/.asdf/plugins/nodejs/bin/import-release-team-keyring"
-install_asdf_language "nodejs"
+# fancy_echo "Installing latest Node ..."
+# bash "$HOME/.asdf/plugins/nodejs/bin/import-release-team-keyring"
+# install_asdf_language "nodejs"
 
 if [ -f "$HOME/.laptop.local" ]; then
   fancy_echo "Running your customizations from ~/.laptop.local ..."
   # shellcheck disable=SC1090
   . "$HOME/.laptop.local"
+
 fi
