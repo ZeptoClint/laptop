@@ -159,7 +159,6 @@ cask "lastpass"
 cask "1password"
 cask "google-chrome"
 cask "firefox"
-cask "pgadmin4"
 
 # Databases
 brew "postgres", restart_service: :changed
@@ -173,7 +172,7 @@ brew unlink heroku
 brew link --force heroku
 
 fancy_echo "Configuring asdf version manager ..."
-append_to_zshrc "source /opt/homebrew/opt/asdf/libexec/asdf.sh" 1
+append_to_zshrc "source /usr/local/opt/asdf/libexec/asdf.sh" 1
 
 alias install_asdf_plugin=add_or_update_asdf_plugin
 add_or_update_asdf_plugin() {
@@ -188,7 +187,7 @@ add_or_update_asdf_plugin() {
 }
 
 # shellcheck disable=SC1090
-source "/opt/homebrew/opt/asdf/libexec/asdf.sh"
+source "/usr/local/opt/asdf/libexec/asdf.sh"
 add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
 add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
 add_or_update_asdf_plugin "python" "https://github.com/danhper/asdf-python.git"
